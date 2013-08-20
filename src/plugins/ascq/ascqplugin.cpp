@@ -30,6 +30,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QByteArray>
+#include <QDebug>
 
 using namespace Ascq;
 using namespace Tiled;
@@ -80,22 +81,29 @@ TileLayer* mergeLayers(const Tiled::Map *map, const QList<TileLayer*> layers)
 				if (cell.tile && cell.tile->hasProperty("base")) 
 				{
 					int base = cell.tile->property("base").toInt();
-					int offset = -(cell.tile->image().height() - base) / 32;
-					if (merged->cellAt(x, y + offset).isEmpty()) 
+					int base_y = y - (cell.tile->image().height() - base) / 32;
+
+					if (merged->cellAt(x, base_y).isEmpty()) 
 					{
-						merged->setCell(x, y + offset, cell);
+						merged->setCell(x, base_y, cell);
 					} 
 					else 
 					{
-						if (merged->cellAt(x, y + offset - 1).isEmpty())
+						if (merged->cellAt(x, base_y - 1).isEmpty())
 						{
-							merged->setCell(x, y + offset - 1, cell);
-							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (offset - 1) * 32));
+							merged->setCell(x, base_y - 1, cell);
+							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (y - (base_y - 1)) * 32));
+							qDebug() << y << "->" << base_y << " base:" << cell.tile->image().height() - (y - (base_y - 1)) * 32;
 						}
-						else if (merged->cellAt(x, y + offset + 1).isEmpty())
+						else if (merged->cellAt(x, base_y + 1).isEmpty())
 						{
-							merged->setCell(x, y + offset + 1, cell);
-							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (offset + 1) * 32));
+							merged->setCell(x, base_y + 1, cell);
+							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (y - (base_y + 1)) * 32));
+						}
+						else 
+						{
+							qDebug() << "cannot find offset";
+
 						}
 					}
 				}
