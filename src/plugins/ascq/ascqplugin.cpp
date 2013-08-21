@@ -81,7 +81,7 @@ TileLayer* mergeLayers(const Tiled::Map *map, const QList<TileLayer*> layers)
 				if (cell.tile && cell.tile->hasProperty("base")) 
 				{
 					int base = cell.tile->property("base").toInt();
-					int base_y = y - (cell.tile->image().height() - base) / 32;
+					int base_y = y - (cell.tile->image().height() / 32 - base - 1);
 
 					if (merged->cellAt(x, base_y).isEmpty()) 
 					{
@@ -92,13 +92,12 @@ TileLayer* mergeLayers(const Tiled::Map *map, const QList<TileLayer*> layers)
 						if (merged->cellAt(x, base_y - 1).isEmpty())
 						{
 							merged->setCell(x, base_y - 1, cell);
-							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (y - (base_y - 1)) * 32));
-							qDebug() << y << "->" << base_y << " base:" << cell.tile->image().height() - (y - (base_y - 1)) * 32;
+							cell.tile->setProperty("base", QString::number(base - 1));
 						}
 						else if (merged->cellAt(x, base_y + 1).isEmpty())
 						{
 							merged->setCell(x, base_y + 1, cell);
-							cell.tile->setProperty("base", QString::number(cell.tile->image().height() - (y - (base_y + 1)) * 32));
+							cell.tile->setProperty("base", QString::number(base + 1));
 						}
 						else 
 						{
@@ -218,7 +217,7 @@ bool AscqPlugin::write(const Tiled::Map *map, const QString &fileName)
 				uncompressed.append((char*)&imageIndex, sizeof(imageIndex));
 				packIndex = objectCell.tile->tileset()->property("packIndex").toInt();
 				uncompressed.append((char*)&packIndex, sizeof(packIndex));
-				base = objectCell.tile->property("base").toInt();
+				base = (objectCell.tile->property("base").toInt() + 1) * 32;
 				uncompressed.append((char*)&base, sizeof(base));
 			}
 		}
