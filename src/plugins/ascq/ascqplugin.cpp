@@ -381,7 +381,7 @@ bool Ascq::AscqPlugin::exportServerFile(const Tiled::Map *map,  const QString &f
 			{
 				flag |= WOOOL_FLAG_BLOCK;
 			}
-			buffer.append(flag);
+			buffer.append((char*)&flag, sizeof(unsigned short));
 		}
 	}
 	
