@@ -148,6 +148,17 @@ TileLayer* getMarkLayer(const Tiled::Map *map)
 	return NULL;
 }
 
+Tileset* getMetroTileset(const Tiled::Map *map)
+{
+	foreach(Tileset *tileset, map->tilesets()) {
+		if (tileset->name() == "metro")
+		{
+			return tileset;
+		}
+	}
+	return NULL;
+}
+
 bool AscqPlugin::write(const Tiled::Map *map, const QString &fileName)
 {
 	QFile file(fileName);
@@ -285,11 +296,12 @@ Tiled::Map * Ascq::AscqPlugin::read( const QString &fileName )
 		return 0; 
 	}
 	
-	QImage metroImage = QImage::fromData(QByteArray::fromBase64("iVBORw0KGgoAAAANSUhEUgAAAEAAAADgCAYAAACzdWAwAAAACXBIWXMAAAsSAAALEgHS3X78AAADH0lEQVR4nO2csWoUURhGv8hAIEgIQqIISpp0ok8gTmNloWBnG0xho+BzCNpYRNLaCVpY2UzwCRS7NEFBTAKyBAmkWht3ncyO7RzZe061N9McDmES9v78C+PxOCVTJcmD9ys17IHw+s6oqVrnmhKBaJI/vwEt6sE1GJrJh26AJLk1nAfCbvtwjrL4XzAALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AE3fvcBuz8/mlm6AhpAgaQdoKAmShdKvx30JJsnh1kYNeyCsbe85H+B8QM9D5wNKwgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNM4HdM4NIUHifIDzAYVTJcnDly+e0CIErx49fj59BxwuXrhHygzN2unPt0nnr8D++cs3GJ1hWf/1/dPk88z/AZ9XNlaG1RmW66O9Uftc/EvQALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0M/cC3e/N550zAdo3JqUwDTC5KysN5wNoAZoqSb49u1jDHghXnh64P8D9AT0P3R9QEgagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoHF/QOfcEBIk7g9wPqBwqiTZ3Lxf5P6AnZ03f/cHHJ0uFbU/YHXxZHZ/wNeT5SL2B1xdOv73/oAvx6tzvT/g2vKR+wPaGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAZuZeoPu9+bxzJkD7xqQUpgEmd2Wl4XwALUBTJcmH9Zs17IFwe/+j+wPcH9Dz0P0BJWEAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARr3B3TODSFB4v4A5wMKp0qSS9t3a9gD4cfWO+cDnA/oeeh8QEkYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDG+YDOuSEkSJwPKH0+4DeG4XZrdlbEFwAAAABJRU5ErkJggg=="));
-	Tileset *metroTileset = new Tileset("metro", 64, 32);
-	metroTileset->loadFromImage(metroImage, "");
-	if (!map->tilesets().contains(metroTileset))
+	Tileset *metroTileset = getMetroTileset(map);
+	if (!metroTileset)
 	{
+		QImage metroImage = QImage::fromData(QByteArray::fromBase64("iVBORw0KGgoAAAANSUhEUgAAAEAAAADgCAYAAACzdWAwAAAACXBIWXMAAAsSAAALEgHS3X78AAADH0lEQVR4nO2csWoUURhGv8hAIEgIQqIISpp0ok8gTmNloWBnG0xho+BzCNpYRNLaCVpY2UzwCRS7NEFBTAKyBAmkWht3ncyO7RzZe061N9McDmES9v78C+PxOCVTJcmD9ys17IHw+s6oqVrnmhKBaJI/vwEt6sE1GJrJh26AJLk1nAfCbvtwjrL4XzAALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AE3fvcBuz8/mlm6AhpAgaQdoKAmShdKvx30JJsnh1kYNeyCsbe85H+B8QM9D5wNKwgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNM4HdM4NIUHifIDzAYVTJcnDly+e0CIErx49fj59BxwuXrhHygzN2unPt0nnr8D++cs3GJ1hWf/1/dPk88z/AZ9XNlaG1RmW66O9Uftc/EvQALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0M/cC3e/N550zAdo3JqUwDTC5KysN5wNoAZoqSb49u1jDHghXnh64P8D9AT0P3R9QEgagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoHF/QOfcEBIk7g9wPqBwqiTZ3Lxf5P6AnZ03f/cHHJ0uFbU/YHXxZHZ/wNeT5SL2B1xdOv73/oAvx6tzvT/g2vKR+wPaGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAZuZeoPu9+bxzJkD7xqQUpgEmd2Wl4XwALUBTJcmH9Zs17IFwe/+j+wPcH9Dz0P0BJWEAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARr3B3TODSFB4v4A5wMKp0qSS9t3a9gD4cfWO+cDnA/oeeh8QEkYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDG+YDOuSEkSJwPKH0+4DeG4XZrdlbEFwAAAABJRU5ErkJggg=="));
+		metroTileset = new Tileset("metro", 64, 32);
+		metroTileset->loadFromImage(metroImage, "");
 		map->addTileset(metroTileset);
 	}
 
