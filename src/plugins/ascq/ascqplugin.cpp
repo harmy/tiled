@@ -227,12 +227,18 @@ bool AscqPlugin::write(const Tiled::Map *map, const QString &fileName)
 	unsigned int uncompressedLen = uncompressed.length();
 	file.write((char*)&uncompressedLen, sizeof(uncompressedLen));
 	file.write(compress(uncompressed));
-	file.close();
 
 	MapWriter writer;
 	QString tmxFileName(fileName);
 	tmxFileName.replace(".map", ".tmx");
 	writer.writeMap(map, tmxFileName);
+
+	QString mapsFileName(fileName);
+	mapsFileName.replace(".map", ".maps");
+	if (!exportServerFile(map, mapsFileName))
+	{
+		return false;
+	}
 	return true;
 }
 
@@ -322,6 +328,57 @@ bool Ascq::AscqPlugin::supportsFile( const QString &fileName ) const
 		return false;
 	return f.read(4) == "ZLIB";
 }
+
+bool Ascq::AscqPlugin::exportServerFile(const Tiled::Map *map,  const QString &fileName )
+{
+	TileLayer* blockLayer = getBlockLayer(map);
+	if (!blockLayer)
+	{
+		mError = QString::fromLocal8Bit("图层中找不到任何阻挡层,无法导出服务器阻挡信息!");
+		return false;
+	}
+
+	QFile file(fileName);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		return false;
+	}
+
+#pragma pack(1)
+	struct stMapHeader {
+		char name[32];
+		unsigned int width;
+		unsigned int height;
+		unsigned int version;
+	};
+#pragma pack()
+
+	stMapHeader mapHeader;
+	memset(&mapHeader, 0, sizeof(mapHeader));
+
+	mapHeader.width = map->width();
+	mapHeader.height = map->height();
+	mapHeader.version = 1;
+
+	QByteArray buffer;
+	buffer.resize(sizeof(mapHeader));
+	memcpy(buffer.data(), &mapHeader, sizeof(mapHeader));
+
+	for (unsigned int y = 0; y < map->height(); ++y) {
+		for (unsigned int x = 0; x < map->width(); ++x) {
+			unsigned short flag = 0;
+			if (!blockLayer->cellAt(x, y).isEmpty())
+			{
+				flag |= WOOOL_FLAG_BLOCK;
+			}
+			buffer.append(flag);
+		}
+	}
+	
+	file.write(buffer);
+	return true;
+}
+
 
 
 

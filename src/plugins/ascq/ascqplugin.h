@@ -75,6 +75,7 @@ public:
 
 private:
     QString mError;
+	bool exportServerFile(const Tiled::Map *map, const QString &fileName);
 };
 
 } // namespace Ascq
