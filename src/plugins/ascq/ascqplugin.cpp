@@ -279,6 +279,12 @@ Tiled::Map * Ascq::AscqPlugin::read( const QString &fileName )
 	memset(&nmpHeader, 0, sizeof(nmpHeader));
 	memcpy(&nmpHeader, uncompressed.data(), sizeof(nmpHeader));
 
+	if (nmpHeader.width != map->width() || nmpHeader.height != map->height())
+	{
+		mError = QString::fromLocal8Bit("打开的地图尺寸与tmx格式尺寸不匹配!");
+		return 0; 
+	}
+	
 	QImage metroImage = QImage::fromData(QByteArray::fromBase64("iVBORw0KGgoAAAANSUhEUgAAAEAAAADgCAYAAACzdWAwAAAACXBIWXMAAAsSAAALEgHS3X78AAADH0lEQVR4nO2csWoUURhGv8hAIEgIQqIISpp0ok8gTmNloWBnG0xho+BzCNpYRNLaCVpY2UzwCRS7NEFBTAKyBAmkWht3ncyO7RzZe061N9McDmES9v78C+PxOCVTJcmD9ys17IHw+s6oqVrnmhKBaJI/vwEt6sE1GJrJh26AJLk1nAfCbvtwjrL4XzAALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AE3fvcBuz8/mlm6AhpAgaQdoKAmShdKvx30JJsnh1kYNeyCsbe85H+B8QM9D5wNKwgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNM4HdM4NIUHifIDzAYVTJcnDly+e0CIErx49fj59BxwuXrhHygzN2unPt0nnr8D++cs3GJ1hWf/1/dPk88z/AZ9XNlaG1RmW66O9Uftc/EvQALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0M/cC3e/N550zAdo3JqUwDTC5KysN5wNoAZoqSb49u1jDHghXnh64P8D9AT0P3R9QEgagBWgMQAvQGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoHF/QOfcEBIk7g9wPqBwqiTZ3Lxf5P6AnZ03f/cHHJ0uFbU/YHXxZHZ/wNeT5SL2B1xdOv73/oAvx6tzvT/g2vKR+wPaGIAWoDEALUBjAFqAxgC0AI0BaAEaA9ACNAagBWgMQAvQGIAWoDEALUBjAFqAZuZeoPu9+bxzJkD7xqQUpgEmd2Wl4XwALUBTJcmH9Zs17IFwe/+j+wPcH9Dz0P0BJWEAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDGALQAjQFoARr3B3TODSFB4v4A5wMKp0qSS9t3a9gD4cfWO+cDnA/oeeh8QEkYgBagMQAtQGMAWoDGALQAjQFoARoD0AI0BqAFaAxAC9AYgBagMQAtQGMAWoDG+YDOuSEkSJwPKH0+4DeG4XZrdlbEFwAAAABJRU5ErkJggg=="));
 	Tileset *metroTileset = new Tileset("metro", 64, 32);
 	metroTileset->loadFromImage(metroImage, "");
@@ -291,11 +297,16 @@ Tiled::Map * Ascq::AscqPlugin::read( const QString &fileName )
 	if (!blockLayer)
 	{
 		blockLayer = new TileLayer(QString::fromLocal8Bit("阻挡"), 0, 0, map->width(), map->height());
-		int i = sizeof(nmpHeader);
-		Tile *tile = metroTileset->tileAt(5);
-		for (int y = 0; y < map->height(); ++y) {
-			for (int x = 0; x < map->width(); ++x) {
-				char flag = 0;
+		map->addLayer(blockLayer);
+	}
+		
+	int i = sizeof(nmpHeader);
+	Tile *tile = metroTileset->tileAt(5);
+	for (int y = 0; y < map->height(); ++y) {
+		for (int x = 0; x < map->width(); ++x) {
+			char flag = 0;
+			if (i < uncompressed.size())
+			{
 				flag = uncompressed.at(i);
 				i += sizeof(char);
 				if (flag & WOOOL_FLAG_BLOCK)
@@ -312,9 +323,8 @@ Tiled::Map * Ascq::AscqPlugin::read( const QString &fileName )
 				}	
 			}
 		}
-		map->addLayer(blockLayer);
 	}
-	
+		
 	return map;
 }
 
